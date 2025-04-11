@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book List</title>
+</head>
+<body>
+<h1>Book List</h1>
+{% if user.is_authenticated %}
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+    {% if user.role == 'admin' %}
+        <a href="{% url 'register' %}">Create Account</a>
+    {% endif %}
+{% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <a href="{% url 'register' %}">Register</a>
+{% endif %}
+<br>
+
+{% if user.is_authenticated %}
+    <p>Welcome, {{ user.username }}! Your role: {{ user.get_role_display }}</p>
+    <a href="{% url 'book_add' %}">Add New Book</a>
+{% endif %}
+
+<ul>
+    {% for book in page_obj %}
+    <li>
+        {{ book.title }} by {{ book.author }} - ${{ book.price }} <br>
+        Genre of the book: {{ book.genre }}
+        {% if user.role == 'admin' %}
+        <a href="{% url 'book_edit' book.id %}">Edit</a>
+        <a href="{% url 'book_delete' book.id %}">Delete</a>
+        {% endif %}
+    </li>
+    <br>
+    {% endfor %}
+</ul>
+
+<div>
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <strong>{{ num }}</strong>
+        {% else %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+</body>
+</html>
