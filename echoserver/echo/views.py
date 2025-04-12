@@ -48,17 +48,15 @@ def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            if not request.user.role == 'admin':
-                role = form.cleaned_data['role']
-                if role == 'admin':
-                    form.add_error('role', 'You do not have permission to create an admin user.')
-                    return render(request, 'register.html', {'form': form})
             form.save()
+            user = form.save()
+            login(request, user)
             return redirect('book_list')
-    else:
+    elif request.user.is_authenticated:
         initial_data = {'user_is_admin': request.user.role == 'admin'}
         form = CustomUserCreationForm(initial=initial_data)
-
+    else:
+        form = CustomUserCreationForm()
     return render(request, 'register.html', {'form': form})
 
 
@@ -71,7 +69,7 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('book_list')  # После успешного входа перенаправляем на список книг
+                return redirect('book_list')
     else:
         form = CustomAuthenticationForm()
     return render(request, 'login.html', {'form': form})
